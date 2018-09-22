@@ -73,28 +73,31 @@ Resources:
           id: ID!
           name: String
         }
+        type Game {
+          round: Int!
+          date: AWSDateTime!
+        }
         type Query {
           getTeams: [Team]!
+          getGames: [Game]!
         }
 
   ###########################
   #    AppSync Resolvers    #
   ###########################
 
-  GetSelfResolver:
+  GetTeamsResolver:
     DependsOn: BloodrushQLSchema
     Type: AWS::AppSync::Resolver
     Properties:
       ApiId: !GetAtt BloodrushQLApi.ApiId
       TypeName: 'Query'
       FieldName: 'getTeams'
-      DataSourceName: !GetAtt LocalDataSource.Name
+      DataSourceName: !GetAtt TeamsTableDataSource.Name
       RequestMappingTemplate: |
         {
             "version": "2017-02-28",
-            "payload": {
-                "a": "hello"
-            }
+            "operation": "Scan"
         }
       ResponseMappingTemplate: |
         {
@@ -102,9 +105,50 @@ Resources:
             "name": "${ctx.result.name}",
         }
 
+  GetGamesResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getGames'
+      DataSourceName: !GetAtt GamesTableDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "operation": "Scan"
+        }
+      ResponseMappingTemplate: |
+        {
+            "round": "${ctx.result.round}",
+            "date": "${ctx.result.date}",
+        }
+
   #############################
   #    AppSync Datasources    #
   #############################
+
+  TeamsTableDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'TeamsTableDataSource'
+      Type: 'AMAZON_DYNAMODB'
+      DynamoDBConfig:
+        TableName: !GetAtt TeamsTable.Arn
+        AwsRegion: !Ref AWS::Region
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
+
+  GamesTableDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'GamesTableDataSource'
+      Type: 'AMAZON_DYNAMODB'
+      DynamoDBConfig:
+        TableName: !GetAtt GamesTable.Arn
+        AwsRegion: !Ref AWS::Region
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
 
   LocalDataSource:
     Type: AWS::AppSync::DataSource
