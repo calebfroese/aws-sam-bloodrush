@@ -1,0 +1,109 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS backend for Bloodrush
+
+Globals:
+  Function:
+    Timeout: 300
+
+Resources:
+  ################
+  #    Cognito   #
+  ################
+
+  CognitoPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: 'Bloodrush'
+
+  #################
+  #    AppSync    #
+  #################
+
+  BloodrushQLApi:
+    Type: AWS::AppSync::GraphQLApi
+    Properties:
+      Name: 'BloodrushQLApi'
+      AuthenticationType: API_KEY
+
+  BloodrushQLSchema:
+    Type: AWS::AppSync::GraphQLSchema
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Definition: |
+        schema {
+          query: Query
+        }
+        type Team {
+          id: ID!
+          name: String
+        }
+        type Query {
+          getTeams: [Team]!
+        }
+
+  ###########################
+  #    AppSync Resolvers    #
+  ###########################
+
+  GetSelfResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getTeams'
+      DataSourceName: !GetAtt LocalDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "payload": {
+                "a": "hello"
+            }
+        }
+      ResponseMappingTemplate: |
+        {
+            "id": "${ctx.result.id}",
+            "name": "${ctx.result.name}",
+        }
+
+  #############################
+  #    AppSync Datasources    #
+  #############################
+
+  LocalDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'LocalDataSource'
+      Description: 'Local AppSync datasource'
+      Type: 'NONE'
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
+
+  ##############################
+  #    IAM Roles & Policies    #
+  ##############################
+
+  ServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'appsync.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
+
+  ##########################
+  #    Template Outputs    #
+  ##########################
+
+Outputs:
+  GraphQLApi:
+    Description: GraphQL endpoint
+    Value: !GetAtt BloodrushQLApi.GraphQLUrl
