@@ -90,6 +90,7 @@ Resources:
         schema {
           query: Query
           mutation: Mutation
+          subscription: Subscription
         }
         type Team {
           id: ID!
@@ -106,6 +107,10 @@ Resources:
         }
         type Mutation {
           createTeam(name: String!): Team!
+        }
+        type Subscription {
+          subscribeToTeams: Team
+            @aws_subscribe(mutations: ["createTeam"])
         }
 
   ###########################
