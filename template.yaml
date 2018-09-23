@@ -17,6 +17,12 @@ Resources:
     Properties:
       UserPoolName: 'Bloodrush'
 
+  WebClientCognito:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: 'Bloodrush Web'
+      UserPoolId: !Ref CognitoPool
+
   ################
   #   DynamoDB   #
   ################
@@ -189,3 +195,9 @@ Outputs:
   GraphQLApi:
     Description: GraphQL endpoint
     Value: !GetAtt BloodrushQLApi.GraphQLUrl
+  UserPoolId:
+    Description: User pool id
+    Value: !Ref CognitoPool
+  WebUserPoolClientId:
+    Description: Web user pool client ID
+    Value: !Ref WebClientCognito
