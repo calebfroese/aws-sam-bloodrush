@@ -76,11 +76,7 @@ Resources:
     Type: AWS::AppSync::GraphQLApi
     Properties:
       Name: 'BloodrushQLApi'
-      AuthenticationType: AMAZON_COGNITO_USER_POOLS
-      UserPoolConfig:
-        UserPoolId: !Ref CognitoPool
-        AwsRegion: !Ref AWS::Region
-        DefaultAction: ALLOW
+      AuthenticationType: AWS_IAM
 
   BloodrushQLSchema:
     Type: AWS::AppSync::GraphQLSchema
@@ -183,6 +179,31 @@ Resources:
   ##############################
   #    IAM Roles & Policies    #
   ##############################
+
+  UserPoolRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Federated: 'cognito-identity.amazonaws.com'
+            Action:
+              - 'sts:AssumeRoleWithWebIdentity'
+      Path: '/'
+
+  UserPoolAppSyncPolicy:
+    Type: 'AWS::IAM::Policy'
+    Properties:
+      PolicyName: 'UserPoolAppSyncPolicy'
+      PolicyDocument:
+        Statement:
+          - Effect: Allow
+            Action: ['appsync:GraphQL']
+            Resource: '*'
+      Roles:
+        - !Ref UserPoolRole
 
   ServiceRole:
     Type: 'AWS::IAM::Role'
