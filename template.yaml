@@ -77,6 +77,10 @@ Resources:
     Properties:
       Name: 'BloodrushQLApi'
       AuthenticationType: AWS_IAM
+      UserPoolConfig:
+        UserPoolId: !Ref CognitoPool
+        AwsRegion: !Ref AWS::Region
+        DefaultAction: ALLOW
 
   BloodrushQLSchema:
     Type: AWS::AppSync::GraphQLSchema
@@ -117,10 +121,7 @@ Resources:
             "operation": "Scan"
         }
       ResponseMappingTemplate: |
-        {
-            "id": "${ctx.result.id}",
-            "name": "${ctx.result.name}",
-        }
+        $utils.toJson($ctx.result)
 
   GetGamesResolver:
     DependsOn: BloodrushQLSchema
@@ -152,7 +153,7 @@ Resources:
       Name: 'TeamsTableDataSource'
       Type: 'AMAZON_DYNAMODB'
       DynamoDBConfig:
-        TableName: !GetAtt TeamsTable.Arn
+        TableName: !Ref TeamsTable
         AwsRegion: !Ref AWS::Region
       ServiceRoleArn: !GetAtt ServiceRole.Arn
 
@@ -180,30 +181,20 @@ Resources:
   #    IAM Roles & Policies    #
   ##############################
 
-  UserPoolRole:
-    Type: 'AWS::IAM::Role'
+  DynamoDBAccessPolicy:
+    Type: 'AWS::IAM::Policy'
     Properties:
-      AssumeRolePolicyDocument:
+      PolicyName: 'dynamodb-access'
+      PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: 'Allow'
-            Principal:
-              Federated: 'cognito-identity.amazonaws.com'
-            Action:
-              - 'sts:AssumeRoleWithWebIdentity'
-      Path: '/'
-
-  UserPoolAppSyncPolicy:
-    Type: 'AWS::IAM::Policy'
-    Properties:
-      PolicyName: 'UserPoolAppSyncPolicy'
-      PolicyDocument:
-        Statement:
-          - Effect: Allow
-            Action: ['appsync:GraphQL']
-            Resource: '*'
+            Action: 'dynamodb:*'
+            Resource:
+              - !GetAtt TeamsTable.Arn
+              - !GetAtt GamesTable.Arn
       Roles:
-        - !Ref UserPoolRole
+        - Ref: ServiceRole
 
   ServiceRole:
     Type: 'AWS::IAM::Role'
