@@ -89,10 +89,11 @@ Resources:
       Definition: |
         schema {
           query: Query
+          mutation: Mutation
         }
         type Team {
           id: ID!
-          name: String
+          name: String!
         }
         type Game {
           round: Int!
@@ -102,10 +103,15 @@ Resources:
           getTeams: [Team]!
           getGames: [Game]!
         }
+        type Mutation {
+          createTeam(name: String!): Team!
+        }
 
   ###########################
   #    AppSync Resolvers    #
   ###########################
+
+  # Queries
 
   GetTeamsResolver:
     DependsOn: BloodrushQLSchema
@@ -137,10 +143,32 @@ Resources:
             "operation": "Scan"
         }
       ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.Items)
+
+  # Mutations
+
+  CreateTeamResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Mutation'
+      FieldName: 'createTeam'
+      DataSourceName: !GetAtt TeamsTableDataSource.Name
+      RequestMappingTemplate: |
         {
-            "round": "${ctx.result.round}",
-            "date": "${ctx.result.date}",
+            "version": "2017-02-28",
+            "operation": "PutItem",
+            "key": {
+              "id": $util.dynamodb.toDynamoDBJson($utils.autoId())
+            },
+            "attributeValues": {
+              "name": $util.dynamodb.toDynamoDBJson($ctx.arguments.name),
+              "owner": $util.dynamodb.toDynamoDBJson($ctx.identity.username)
+            }
         }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
 
   #############################
   #    AppSync Datasources    #
