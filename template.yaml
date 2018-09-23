@@ -94,6 +94,7 @@ Resources:
         type Team {
           id: ID!
           name: String!
+          owned: Boolean!
         }
         type Game {
           round: Int!
@@ -110,6 +111,42 @@ Resources:
   ###########################
   #    AppSync Resolvers    #
   ###########################
+
+  TeamOwnedResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Team'
+      FieldName: 'owned'
+      DataSourceName: !GetAtt LocalDataSource.Name
+      RequestMappingTemplate: |
+        {
+          "version": "2017-02-28",
+          "payload": "${ctx.source.owner}"
+        }
+      ResponseMappingTemplate: |
+        #if($ctx.result == $context.identity.username)
+            true
+        #else
+            false
+        #end
+
+  GetGamesResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getGames'
+      DataSourceName: !GetAtt GamesTableDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "operation": "Scan"
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.Items)
 
   # Queries
 
