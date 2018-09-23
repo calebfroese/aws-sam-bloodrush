@@ -16,6 +16,17 @@ Resources:
     Type: AWS::Cognito::UserPool
     Properties:
       UserPoolName: 'Bloodrush'
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 6
+          RequireLowercase: false
+          RequireNumbers: false
+          RequireSymbols: false
+          RequireUppercase: false
+      UsernameAttributes:
+        - email
+      AutoVerifiedAttributes:
+        - email
 
   WebClientCognito:
     Type: AWS::Cognito::UserPoolClient
