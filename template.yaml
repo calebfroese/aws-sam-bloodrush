@@ -121,7 +121,7 @@ Resources:
             "operation": "Scan"
         }
       ResponseMappingTemplate: |
-        $utils.toJson($ctx.result)
+        $utils.toJson($ctx.result.Items)
 
   GetGamesResolver:
     DependsOn: BloodrushQLSchema
