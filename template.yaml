@@ -116,7 +116,7 @@ Resources:
     Type: AWS::AppSync::GraphQLApi
     Properties:
       Name: 'BloodrushQLApi'
-      AuthenticationType: AWS_IAM
+      AuthenticationType: AMAZON_COGNITO_USER_POOLS
       UserPoolConfig:
         UserPoolId: !Ref CognitoPool
         AwsRegion: !Ref AWS::Region
