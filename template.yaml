@@ -27,6 +27,8 @@ Resources:
         - email
       AutoVerifiedAttributes:
         - email
+      LambdaConfig:
+        PostConfirmation: !GetAtt PostAuthenticationLambda.Arn
 
   WebClientCognito:
     Type: AWS::Cognito::UserPoolClient
@@ -35,8 +37,37 @@ Resources:
       UserPoolId: !Ref CognitoPool
 
   ################
+  #    Lambda    #
+  ################
+
+  PostAuthenticationLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: dist
+      Handler: lambdas.postAuthentication
+      Runtime: nodejs8.10
+      Environment:
+        Variables:
+          DB_ACCOUNTS: !Ref AccountsTable
+
+  ################
   #   DynamoDB   #
   ################
+
+  AccountsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+          # Cognito users username
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: username
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
 
   TeamsTable:
     Type: AWS::DynamoDB::Table
@@ -92,6 +123,11 @@ Resources:
           mutation: Mutation
           subscription: Subscription
         }
+        type Account {
+          # Unique cognito username identifier
+          username: ID!
+          name: String
+        }
         type Team {
           id: ID!
           name: String!
@@ -102,6 +138,7 @@ Resources:
           date: AWSDateTime!
         }
         type Query {
+          getAccount: Account
           getTeams: [Team]!
           getGames: [Game]!
         }
@@ -154,6 +191,25 @@ Resources:
         $utils.toJson($ctx.result.Items)
 
   # Queries
+
+  GetAccountResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getAccount'
+      DataSourceName: !GetAtt AccountsTableDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "operation": "GetItem",
+            "key": {
+              "username": { "S": "${ctx.identity.username}" }
+            }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result.Items)
 
   GetTeamsResolver:
     DependsOn: BloodrushQLSchema
@@ -216,6 +272,17 @@ Resources:
   #    AppSync Datasources    #
   #############################
 
+  AccountsTableDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'AccountsTableDataSource'
+      Type: 'AMAZON_DYNAMODB'
+      DynamoDBConfig:
+        TableName: !Ref AccountsTable
+        AwsRegion: !Ref AWS::Region
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
+
   TeamsTableDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -265,6 +332,20 @@ Resources:
               - !GetAtt GamesTable.Arn
       Roles:
         - Ref: ServiceRole
+
+  ServiceRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: 'Allow'
+            Principal:
+              Service:
+                - 'appsync.amazonaws.com'
+            Action:
+              - 'sts:AssumeRole'
+      Path: '/'
 
   ServiceRole:
     Type: 'AWS::IAM::Role'
