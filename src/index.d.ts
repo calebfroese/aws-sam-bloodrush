@@ -4,7 +4,7 @@ interface Player {
   lastName: string;
   name: string;
   countryOfOrigin: string;
-  expireAt: string;
+  expireAt?: string;
 }
 
 interface Team {

@@ -92,6 +92,10 @@ Resources:
       CodeUri: dist/prod
       Handler: lambdas.createTeam
       Runtime: nodejs8.10
+      Environment:
+        Variables:
+          DB_ACCOUNTS: !Ref AccountsTable
+          DB_TEAMS: !Ref TeamsTable
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -105,15 +109,32 @@ Resources:
                 - 'dynamodb:UpdateItem'
               Resource:
                 - !GetAtt AccountsTable.Arn
-      Events:
-        Timer:
-          Type: Schedule
-          Properties:
-            Schedule: rate(1 hour)
+
+  PurchasePlayerLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: dist/prod
+      Handler: lambdas.purchasePlayer
+      Runtime: nodejs8.10
       Environment:
         Variables:
-          DB_ACCOUNTS: !Ref AccountsTable
+          DB_PLAYERS: !Ref PlayersTable
           DB_TEAMS: !Ref TeamsTable
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:GetItem'
+                - 'dynamodb:DeleteItem'
+              Resource:
+                - !GetAtt PlayersTable.Arn
+            - Effect: Allow
+              Action:
+                - 'dynamodb:UpdateItem'
+              Resource:
+                - !GetAtt TeamsTable.Arn
 
   # Permissions
 
@@ -245,6 +266,7 @@ Resources:
         }
         type Mutation {
           createTeam(name: String! abbreviation: String!): Team!
+          purchasePlayer(teamId: String! playerId: String!): Player
         }
         type Subscription {
           subscribeToTeams: Team
@@ -266,7 +288,7 @@ Resources:
       RequestMappingTemplate: |
         {
           "version": "2017-02-28",
-          "payload": "${ctx.source.owner}"
+          "payload": "${ctx.source.ownerUsername}"
         }
       ResponseMappingTemplate: |
         #if($ctx.result == $context.identity.username)
@@ -390,9 +412,40 @@ Resources:
       ResponseMappingTemplate: |
         $utils.toJson($ctx.result)
 
+  PurchasePlayerResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Mutation'
+      FieldName: 'purchasePlayer'
+      DataSourceName: !GetAtt PurchasePlayerDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "operation": "Invoke",
+            "payload": {
+              "username": "${ctx.identity.username}",
+              "teamId": "${ctx.args.teamId}",
+              "playerId": "${ctx.args.playerId}"
+            }
+        }
+      ResponseMappingTemplate: |
+        $utils.toJson($ctx.result)
+
   #############################
   #    AppSync Datasources    #
   #############################
+  PurchasePlayerDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'PurchasePlayerDataSource'
+      Type: 'AWS_LAMBDA'
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt PurchasePlayerLambda.Arn
+
   CreateTeamDataSource:
     Type: AWS::AppSync::DataSource
     Properties:
@@ -505,6 +558,7 @@ Resources:
                   - 'lambda:InvokeFunction'
                 Resource:
                   - !GetAtt CreateTeamLambda.Arn
+                  - !GetAtt PurchasePlayerLambda.Arn
 
   ##########################
   #    Template Outputs    #

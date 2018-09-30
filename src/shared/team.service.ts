@@ -23,8 +23,26 @@ export class TeamService {
             id: payload.id,
             name: payload.name,
             abbreviation: payload.abbreviation,
-            owner: username,
+            ownerUsername: username,
             players: [],
+          },
+        })
+        .promise()
+    );
+  }
+
+  /**
+   * Gets a team by ID
+   *
+   * @param teamId The teams ID
+   */
+  getTeam(teamId: string) {
+    return from(
+      this.doc
+        .get({
+          TableName: this.tableName,
+          Key: {
+            id: teamId,
           },
         })
         .promise()
@@ -51,9 +69,9 @@ export class TeamService {
             '#playerAttr': 'players',
           },
           // Can only add a player on a team the user owns
-          ConditionExpression: 'username = :username',
+          ConditionExpression: 'ownerUsername = :username',
           ExpressionAttributeValues: {
-            ':player': payload,
+            ':player': [payload],
             ':username': username,
           },
         })

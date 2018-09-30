@@ -46,4 +46,22 @@ export class PlayerService {
         .promise()
     );
   }
+
+  /**
+   * Fetches a player by ID
+   *
+   * @param playerId ID of the player
+   */
+  getPlayer(playerId: string) {
+    return from(
+      this.doc
+        .get({
+          TableName: this.tableName,
+          Key: {
+            id: playerId,
+          },
+        })
+        .promise()
+    );
+  }
 }

@@ -9,6 +9,7 @@ describe(PlayerService.name, () => {
   let service: PlayerService;
   let batchWriteStub: SinonStub;
   let deleteStub: SinonStub;
+  let getStub: SinonStub;
 
   before(() => {
     service = new PlayerService('player-table');
@@ -22,6 +23,14 @@ describe(PlayerService.name, () => {
       });
     deleteStub = sandbox
       .stub(AWS.DynamoDB.DocumentClient.prototype, 'delete')
+      .returns({
+        promise: () =>
+          Promise.resolve({
+            mockDynamoResponse: true,
+          }),
+      });
+    getStub = sandbox
+      .stub(AWS.DynamoDB.DocumentClient.prototype, 'get')
       .returns({
         promise: () =>
           Promise.resolve({
@@ -74,6 +83,24 @@ describe(PlayerService.name, () => {
     service.deletePlayer('player-032').subscribe(data => {
       expect(deleteStub.calledOnce).true;
       expect(deleteStub.getCall(0).args).to.deep.equal([
+        {
+          TableName: 'player-table',
+          Key: {
+            id: 'player-032',
+          },
+        },
+      ]);
+      expect(data).to.deep.equal({
+        mockDynamoResponse: true,
+      });
+      done();
+    }, done);
+  });
+
+  it('gets a player by id', done => {
+    service.getPlayer('player-032').subscribe(data => {
+      expect(getStub.calledOnce).true;
+      expect(getStub.getCall(0).args).to.deep.equal([
         {
           TableName: 'player-table',
           Key: {

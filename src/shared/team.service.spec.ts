@@ -45,7 +45,7 @@ describe(TeamService.name, () => {
             id: '000',
             name: 'Panthers',
             abbreviation: 'PTH',
-            owner: 'user-cognito-123',
+            ownerUsername: 'user-cognito-123',
             players: [],
           },
         },
@@ -83,7 +83,7 @@ describe(TeamService.name, () => {
             // Can only add a player on a team the user owns
             ConditionExpression: 'username = :username',
             ExpressionAttributeValues: {
-              ':player': player,
+              ':player': [player],
               ':username': 'user-cognito-123',
             },
           },
