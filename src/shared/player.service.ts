@@ -28,4 +28,22 @@ export class PlayerService {
         .promise()
     );
   }
+
+  /**
+   * Deletes a player by ID
+   *
+   * @param playerId ID of the player
+   */
+  deletePlayer(playerId: string) {
+    return from(
+      this.doc
+        .delete({
+          TableName: this.tableName,
+          Key: {
+            id: playerId,
+          },
+        })
+        .promise()
+    );
+  }
 }
