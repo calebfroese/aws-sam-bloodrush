@@ -30,4 +30,34 @@ export class TeamService {
         .promise()
     );
   }
+
+  /**
+   *
+   * @param username Cognito username
+   * @param teamId Team ID
+   * @param payload Player to be created on the team
+   */
+  addPlayerToTeam(username: string, teamId: string, payload: Player) {
+    return from(
+      this.doc
+        .update({
+          TableName: this.tableName,
+          Key: {
+            id: teamId,
+          },
+          UpdateExpression:
+            'SET #playerAttr = list_append(#playerAttr, :player)',
+          ExpressionAttributeNames: {
+            '#playerAttr': 'players',
+          },
+          // Can only add a player on a team the user owns
+          ConditionExpression: 'username = :username',
+          ExpressionAttributeValues: {
+            ':player': payload,
+            ':username': username,
+          },
+        })
+        .promise()
+    );
+  }
 }
