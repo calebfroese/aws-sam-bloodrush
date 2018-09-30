@@ -43,7 +43,7 @@ export class AccountService {
           },
           UpdateExpression: 'SET #teamAttr = list_append(#teamAttr, :teamId)',
           ExpressionAttributeNames: {
-            '#teamAttr': 'team',
+            '#teamAttr': 'teams',
           },
           ExpressionAttributeValues: {
             ':teamId': [teamId],
