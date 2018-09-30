@@ -150,6 +150,17 @@ Resources:
           username: ID!
           name: String
         }
+        type PaginatedPlayers {
+          players: [Player]!
+          nextToken: String!
+        }
+        type Player {
+          id: ID!
+          name: String
+          firstName: String
+          lastName: String
+          countryOfOrigin: String
+        }
         type Team {
           id: ID!
           name: String!
@@ -161,6 +172,7 @@ Resources:
         }
         type Query {
           getAccount: Account
+          getPlayers(limit: Int nextToken: String): PaginatedPlayers
           getTeams: [Team]!
           getGames: [Game]!
         }
@@ -211,6 +223,27 @@ Resources:
         }
       ResponseMappingTemplate: |
         $utils.toJson($ctx.result.Items)
+
+  GetPlayersResolver:
+    DependsOn: BloodrushQLSchema
+    Type: AWS::AppSync::Resolver
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      TypeName: 'Query'
+      FieldName: 'getPlayers'
+      DataSourceName: !GetAtt PlayersTableDataSource.Name
+      RequestMappingTemplate: |
+        {
+            "version": "2017-02-28",
+            "operation": "Scan",
+            "limit": $util.defaultIfNull(${ctx.args.limit}, 20),
+            "nextToken": $util.toJson($util.defaultIfNullOrBlank($ctx.args.nextToken, null))
+        }
+      ResponseMappingTemplate: |
+        {
+          "players": $utils.toJson($context.result.Items),
+          "nextToken": $util.toJson($context.result.nextToken)
+        }
 
   # Queries
 
@@ -379,20 +412,18 @@ Resources:
             Action:
               - 'sts:AssumeRole'
       Path: '/'
-
-  ServiceRole:
-    Type: 'AWS::IAM::Role'
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
+      Policies:
         Statement:
-          - Effect: 'Allow'
-            Principal:
-              Service:
-                - 'appsync.amazonaws.com'
-            Action:
-              - 'sts:AssumeRole'
-      Path: '/'
+      Policies:
+        - PolicyName: root
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: 'Allow'
+                Action:
+                  - 'dynamodb:Scan'
+                Resource:
+                  - !GetAtt PlayersTable.Arn
 
   ##########################
   #    Template Outputs    #
