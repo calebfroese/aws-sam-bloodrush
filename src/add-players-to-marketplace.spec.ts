@@ -12,6 +12,7 @@ describe(addPlayersToMarketplace.name, () => {
 
   before(() => {
     process.env.PLAYER_COUNT = '3';
+    process.env.PLAYER_TTL_DAYS = '30';
     addPlayersStub = sandbox
       .stub(PlayerService.prototype, 'createPlayers')
       .returns(of({ mockCreateResponse: 100 }));
@@ -24,21 +25,18 @@ describe(addPlayersToMarketplace.name, () => {
     addPlayersToMarketplace(null, null, (err: any, data: any) => {
       expect(addPlayersStub.calledOnce).true;
       expect(addPlayersStub.getCall(0).args[0]).lengthOf(3);
-      addPlayersStub
-        .getCall(0)
-        .args[0].forEach((playerCreateRequest: Player) => {
-          // id is a valid uuid
-          expect(playerCreateRequest['id']).exist;
-          expect(playerCreateRequest['id']).contains('-');
-          expect(playerCreateRequest['id']).lengthOf(36);
-          // player has fake properties as expected
-          expect(playerCreateRequest['firstName']).eq('Fake firstName');
-          expect(playerCreateRequest['lastName']).eq('Fake lastName');
-          expect(playerCreateRequest['name']).eq(
-            'Fake firstName Fake lastName'
-          );
-          expect(playerCreateRequest['countryOfOrigin']).eq('Fake country');
-        });
+      addPlayersStub.getCall(0).args[0].forEach((playerCreateRequest: any) => {
+        // id is a valid uuid
+        expect(playerCreateRequest['id']).exist;
+        expect(playerCreateRequest['id']).contains('-');
+        expect(playerCreateRequest['id']).lengthOf(36);
+        // player has fake properties as expected
+        expect(playerCreateRequest['firstName']).eq('Fake firstName');
+        expect(playerCreateRequest['lastName']).eq('Fake lastName');
+        expect(playerCreateRequest['name']).eq('Fake firstName Fake lastName');
+        expect(playerCreateRequest['countryOfOrigin']).eq('Fake country');
+        expect(playerCreateRequest['expireAt']).exist;
+      });
       done(err);
     });
   });

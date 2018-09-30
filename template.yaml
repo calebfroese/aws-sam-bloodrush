@@ -83,6 +83,7 @@ Resources:
         Variables:
           DB_PLAYERS: !Ref PlayersTable
           PLAYER_COUNT: 5
+          PLAYER_TTL_DAYS: 30
 
   ################
   #   DynamoDB   #
@@ -100,6 +101,9 @@ Resources:
       ProvisionedThroughput:
         ReadCapacityUnits: 1
         WriteCapacityUnits: 1
+      TimeToLiveSpecification:
+        AttributeName: 'expireAt'
+        Enabled: true
 
   AccountsTable:
     Type: AWS::DynamoDB::Table

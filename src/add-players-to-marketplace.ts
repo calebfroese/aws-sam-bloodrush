@@ -26,6 +26,10 @@ export function addPlayersToMarketplace(event: any, ctx: any, callback: any) {
         lastName,
         name: [firstName, lastName].join(' '),
         countryOfOrigin: faker.address.country(),
+        expireAt: new Date(
+          Date.now() +
+            1000 * 60 * 60 * 24 * parseInt(<string>process.env.PLAYER_TTL_DAYS)
+        ).toISOString(),
       };
     });
 

@@ -29,6 +29,7 @@ describe(PlayerService.name, () => {
         lastName: 'Smith',
         name: 'Bob Smith',
         countryOfOrigin: 'USA',
+        expireAt: new Date(100).toISOString(),
       },
     ];
     service.createPlayers(players).subscribe(data => {
@@ -39,13 +40,13 @@ describe(PlayerService.name, () => {
             'player-table': [
               {
                 PutRequest: {
-                  TableName: 'player-table',
                   Item: {
-                    id: { S: '123' },
-                    firstName: { S: 'Bob' },
-                    lastName: { S: 'Smith' },
-                    name: { S: 'Bob Smith' },
-                    countryOfOrigin: { S: 'USA' },
+                    id: '123',
+                    firstName: 'Bob',
+                    lastName: 'Smith',
+                    name: 'Bob Smith',
+                    countryOfOrigin: 'USA',
+                    expireAt: '1970-01-01T00:00:00.100Z',
                   },
                 },
               },

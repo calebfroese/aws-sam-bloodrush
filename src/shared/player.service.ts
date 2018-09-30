@@ -19,7 +19,6 @@ export class PlayerService {
         .batchWrite({
           RequestItems: {
             [this.tableName]: players.map(player => ({
-              TableName: this.tableName,
               PutRequest: {
                 Item: player,
               },
