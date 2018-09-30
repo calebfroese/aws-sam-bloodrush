@@ -1,0 +1,18 @@
+{
+  "name": "aws-sam-bloodrush",
+  "version": "1.0.0",
+  "description": "This repository contains the AWS hosted backend for Bloodrush as a [SAM](https://github.com/awslabs/serverless-application-model).",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/calebfroese/aws-sam-bloodrush.git"
+  },
+  "author": "Caleb Froese <caleb.froese@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/calebfroese/aws-sam-bloodrush/issues"
+  },
+  "homepage": "https://github.com/calebfroese/aws-sam-bloodrush#readme"
+}
