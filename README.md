@@ -26,7 +26,7 @@ This will compile the Typescript project source and tests with sourcemaps.
 
 ### for Production
 
-We are using [Parcel](https://parceljs.org) to create light production builds.
+We are using [Webpack](https://webpack.js.org) to create minified production builds.
 You can build for production with `$ npm run build:prod`.
 Production builds do not include tests or sourcemaps, and are only the single `lambdas` entrypoint referenced in the SAM template.
 
