@@ -27,9 +27,11 @@
   "homepage": "https://github.com/calebfroese/aws-sam-bloodrush#readme",
   "devDependencies": {
     "@types/chai": "^4.1.6",
+    "@types/faker": "^4.1.4",
     "@types/mocha": "^5.2.5",
     "@types/node": "^10.11.3",
     "@types/sinon": "^5.0.2",
+    "@types/uuid": "^3.4.4",
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.4",
@@ -41,6 +43,8 @@
   },
   "dependencies": {
     "aws-sdk": "^2.325.0",
-    "rxjs": "^6.3.3"
+    "faker": "^4.1.0",
+    "rxjs": "^6.3.3",
+    "uuid": "^3.3.2"
   }
 }

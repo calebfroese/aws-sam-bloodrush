@@ -57,8 +57,32 @@ Resources:
                 - !GetAtt AccountsTable.Arn
       Environment:
         Variables:
-          TEST: "hello world"
           DB_ACCOUNTS: !Ref AccountsTable
+
+  AddPlayersToMarketplaceLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: dist/prod
+      Handler: lambdas.addPlayersToMarketplace
+      Runtime: nodejs8.10
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:BatchWriteItem'
+              Resource:
+                - !GetAtt PlayersTable.Arn
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+      Environment:
+        Variables:
+          DB_PLAYERS: !Ref PlayersTable
+          PLAYER_COUNT: 5
 
   ################
   #   DynamoDB   #
@@ -152,7 +176,7 @@ Resources:
         }
         type PaginatedPlayers {
           players: [Player]!
-          nextToken: String!
+          nextToken: String
         }
         type Player {
           id: ID!
