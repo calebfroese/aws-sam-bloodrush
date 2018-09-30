@@ -11,7 +11,14 @@ export function postAuthentication(event: EventInput, ctx: any, callback: any) {
   console.log(JSON.stringify(event));
   console.log(JSON.stringify(ctx));
 
-  accountService
-    .createAccount({ username: event.userName })
-    .subscribe(() => callback(null, event), callback);
+  accountService.createAccount({ username: event.userName }).subscribe(
+    () => {
+      console.log('Resolving');
+      callback(null, event);
+    },
+    err => {
+      console.error(err);
+      callback(err);
+    }
+  );
 }

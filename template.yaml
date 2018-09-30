@@ -44,9 +44,17 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      CodeUri: dist
-      Handler: lambdas.postAuthentication
+      CodeUri: .
+      Handler: dist/lambdas.postAuthentication
       Runtime: nodejs8.10
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:PutItem'
+              Resource:
+                - !GetAtt AccountsTable.Arn
       Environment:
         Variables:
           DB_ACCOUNTS: !Ref AccountsTable
