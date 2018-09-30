@@ -4,6 +4,7 @@ const webpack = require('webpack');
 module.exports = {
     entry: './src/lambdas.ts',
     mode: 'production',
+    target: 'node',
     plugins: [
         new webpack.DefinePlugin({
             'process.env': 'process.env'
@@ -24,6 +25,7 @@ module.exports = {
         extensions: ['.ts', '.js']
     },
     output: {
+        libraryTarget: "commonjs",
         filename: 'lambdas.js',
         path: path.resolve(__dirname, 'dist', 'prod')
     }
