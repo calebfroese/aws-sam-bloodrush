@@ -61,6 +61,6 @@ describe(PlayerService.name, () => {
     }, done);
   });
 
-  afterEach(() => sandbox.reset());
+  afterEach(() => sandbox.resetHistory());
   after(() => sandbox.restore());
 });

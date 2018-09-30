@@ -6,3 +6,9 @@ interface Player {
   countryOfOrigin: string;
   expireAt: string;
 }
+
+interface Team {
+  id: string;
+  name: string;
+  abbreviation: string;
+}

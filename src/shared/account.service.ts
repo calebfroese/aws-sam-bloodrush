@@ -8,12 +8,43 @@ export class AccountService {
     this.doc = new AWS.DynamoDB.DocumentClient();
   }
 
-  createAccount(payload: { username: string }) {
+  /**
+   * Creates an account item related to the Cognito user
+   *
+   * @param username Cognito username
+   */
+  createAccount(username: string) {
     return from(
       this.doc
         .put({
           TableName: this.tableName,
-          Item: payload,
+          Item: {
+            username,
+            teams: [],
+          },
+        })
+        .promise()
+    );
+  }
+
+  /**
+   * Attaches a team to an account
+   *
+   * @param username Cognito username
+   * @param teamId The id of the team to attach to this account
+   */
+  addTeam(username: string, teamId: string) {
+    return from(
+      this.doc
+        .update({
+          TableName: this.tableName,
+          Key: {
+            username,
+          },
+          UpdateExpression: 'SET teams = list_append(teams, :teamId)',
+          ExpressionAttributeValues: {
+            teamId: teamId,
+          },
         })
         .promise()
     );

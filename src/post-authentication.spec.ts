@@ -23,13 +23,13 @@ describe(postAuthentication.name, () => {
     postAuthentication(event, null, (err: any, data: any) => {
       expect(createAccountStub.calledOnce).true;
       expect(createAccountStub.getCall(0).args).to.deep.equal([
-        { username: 'mock-user-name' },
+        'mock-user-name',
       ]);
       expect(data).to.deep.equal(event);
       done(err);
     });
   });
 
-  afterEach(() => sandbox.reset());
+  afterEach(() => sandbox.resetHistory());
   after(() => sandbox.restore());
 });

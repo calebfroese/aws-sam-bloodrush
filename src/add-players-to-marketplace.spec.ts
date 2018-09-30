@@ -41,6 +41,6 @@ describe(addPlayersToMarketplace.name, () => {
     });
   });
 
-  afterEach(() => sandbox.reset());
+  afterEach(() => sandbox.resetHistory());
   after(() => sandbox.restore());
 });

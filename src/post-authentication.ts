@@ -9,6 +9,6 @@ interface EventInput {
 export function postAuthentication(event: EventInput, ctx: any, callback: any) {
   const accountService = new AccountService(<any>process.env.DB_ACCOUNTS);
   accountService
-    .createAccount({ username: event.userName })
+    .createAccount(event.userName)
     .subscribe(() => callback(null, event), callback);
 }
