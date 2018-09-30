@@ -64,6 +64,19 @@ Resources:
   #   DynamoDB   #
   ################
 
+  PlayersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
   AccountsTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -280,6 +293,17 @@ Resources:
   #############################
   #    AppSync Datasources    #
   #############################
+
+  PlayersTableDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'PlayersTableDataSource'
+      Type: 'AMAZON_DYNAMODB'
+      DynamoDBConfig:
+        TableName: !Ref PlayersTable
+        AwsRegion: !Ref AWS::Region
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
 
   AccountsTableDataSource:
     Type: AWS::AppSync::DataSource
