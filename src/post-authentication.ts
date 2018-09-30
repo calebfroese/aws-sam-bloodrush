@@ -7,8 +7,8 @@ interface EventInput {
 }
 
 export function postAuthentication(event: EventInput, ctx: any, callback: any) {
-  console.log(eval('process.env'));
-  const accountService = new AccountService(eval('process.env.DB_ACCOUNTS'));
+  console.log(process.env);
+  const accountService = new AccountService(<any>process.env.DB_ACCOUNTS);
   console.log(JSON.stringify(event));
   console.log(JSON.stringify(ctx));
 
