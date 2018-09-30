@@ -44,8 +44,8 @@ Resources:
     Type: AWS::Serverless::Function
     Properties:
       Tracing: Active
-      CodeUri: .
-      Handler: dist/lambdas.postAuthentication
+      CodeUri: dist/prod
+      Handler: lambdas.postAuthentication
       Runtime: nodejs8.10
       Policies:
         - Version: '2012-10-17'
@@ -57,6 +57,7 @@ Resources:
                 - !GetAtt AccountsTable.Arn
       Environment:
         Variables:
+          TEST: "hello world"
           DB_ACCOUNTS: !Ref AccountsTable
 
   ################

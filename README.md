@@ -6,10 +6,30 @@ This repository contains the AWS hosted backend for Bloodrush as a [SAM](https:/
 
 - AWS CLI
 - SAM CLI
-- S3 Bucket named aws-sam-bloodrush
+- Node & NPM
+
+## Installation
+
+Install required node modules `$ npm install`.
+
+## Testing
+
+After installing, the test suite can be run with `$ npm test`.
+For testing alongside development `$ npm run watch:test` will build and test the project.
+
+## Building
+
+### for Development
+
+Development builds can be created by running `$ npm run build:dev`.
+This will compile the Typescript project source and tests with sourcemaps.
+
+### for Production
+
+We are using [Parcel](https://parceljs.org) to create light production builds.
+You can build for production with `$ npm run build:prod`.
+Production builds do not include tests or sourcemaps, and are only the single `lambdas` entrypoint referenced in the SAM template.
 
 ## Deployment
 
-`$ sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-bloodrush`
-
-`$ sam deploy --template-file packaged.yaml --stack-name aws-sam-bloodrush --capabilities CAPABILITY_IAM`
+`$ npm run deploy` will create a production build and deploy it to AWS.

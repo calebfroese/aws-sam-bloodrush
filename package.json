@@ -3,10 +3,16 @@
   "version": "1.0.0",
   "description": "This repository contains the AWS hosted backend for Bloodrush as a [SAM](https://github.com/awslabs/serverless-application-model).",
   "scripts": {
-    "prebuild": "rm -rf ./dist",
-    "build": "tsc",
-    "pretest": "npm run build",
-    "test": "mocha --recursive \"dist/**/**.{spec,e2e}.js\"",
+    "prepackage": "npm run build:prod",
+    "package": "sam package --template-file template.yaml --output-template-file packaged.yaml --s3-bucket aws-sam-bloodrush",
+    "predeploy": "npm run package",
+    "deploy": "sam deploy --template-file packaged.yaml --stack-name bloodrush --capabilities CAPABILITY_IAM",
+    "prebuild:prod": "rm -rf ./dist/prod",
+    "build:prod": "./node_modules/.bin/parcel build --out-dir ./dist/prod --no-source-maps src/lambdas.ts",
+    "prebuild:test": "rm -rf ./dist/dev",
+    "build:dev": "tsc",
+    "pretest": "npm run build:dev",
+    "test": "mocha --recursive \"dist/dev/**/**.{spec,e2e}.js\"",
     "watch:test": "nodemon -e ts,json --ignore dist/ --exec \"npm run test || true\""
   },
   "repository": {
@@ -27,7 +33,9 @@
     "chai": "^4.2.0",
     "mocha": "^5.2.0",
     "nodemon": "^1.18.4",
-    "sinon": "^6.3.4"
+    "parcel-bundler": "^1.10.1",
+    "sinon": "^6.3.4",
+    "typescript": "^3.1.1"
   },
   "dependencies": {
     "aws-sdk": "^2.325.0",
