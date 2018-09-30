@@ -85,6 +85,45 @@ Resources:
           PLAYER_COUNT: 5
           PLAYER_TTL_DAYS: 30
 
+  CreateTeamLambda:
+    Type: AWS::Serverless::Function
+    Properties:
+      Tracing: Active
+      CodeUri: dist/prod
+      Handler: lambdas.createTeam
+      Runtime: nodejs8.10
+      Policies:
+        - Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Action:
+                - 'dynamodb:PutItem'
+              Resource:
+                - !GetAtt TeamsTable.Arn
+            - Effect: Allow
+              Action:
+                - 'dynamodb:UpdateItem'
+              Resource:
+                - !GetAtt AccountsTable.Arn
+      Events:
+        Timer:
+          Type: Schedule
+          Properties:
+            Schedule: rate(1 hour)
+      Environment:
+        Variables:
+          DB_ACCOUNTS: !Ref AccountsTable
+          DB_TEAMS: !Ref TeamsTable
+
+  # Permissions
+
+  PostAuthenticationLambdaPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      Action: 'lambda:InvokeFunction'
+      FunctionName: !Ref PostAuthenticationLambda
+      Principal: cognito-idp.amazonaws.com
+
   ################
   #   DynamoDB   #
   ################
@@ -205,7 +244,7 @@ Resources:
           getGames: [Game]!
         }
         type Mutation {
-          createTeam(name: String!): Team!
+          createTeam(name: String! abbreviation: String!): Team!
         }
         type Subscription {
           subscribeToTeams: Team
@@ -335,17 +374,17 @@ Resources:
       ApiId: !GetAtt BloodrushQLApi.ApiId
       TypeName: 'Mutation'
       FieldName: 'createTeam'
-      DataSourceName: !GetAtt TeamsTableDataSource.Name
+      DataSourceName: !GetAtt CreateTeamDataSource.Name
       RequestMappingTemplate: |
         {
             "version": "2017-02-28",
-            "operation": "PutItem",
-            "key": {
-              "id": $util.dynamodb.toDynamoDBJson($utils.autoId())
-            },
-            "attributeValues": {
-              "name": $util.dynamodb.toDynamoDBJson($ctx.arguments.name),
-              "owner": $util.dynamodb.toDynamoDBJson($ctx.identity.username)
+            "operation": "Invoke",
+            "payload": {
+              "username": "${ctx.identity.username}",
+              "team": {
+                "name": "${ctx.args.name}",
+                "abbreviation": "${ctx.args.abbreviation}"
+              }
             }
         }
       ResponseMappingTemplate: |
@@ -354,6 +393,15 @@ Resources:
   #############################
   #    AppSync Datasources    #
   #############################
+  CreateTeamDataSource:
+    Type: AWS::AppSync::DataSource
+    Properties:
+      ApiId: !GetAtt BloodrushQLApi.ApiId
+      Name: 'CreateTeamDataSource'
+      Type: 'AWS_LAMBDA'
+      ServiceRoleArn: !GetAtt ServiceRole.Arn
+      LambdaConfig:
+        LambdaFunctionArn: !GetAtt CreateTeamLambda.Arn
 
   PlayersTableDataSource:
     Type: AWS::AppSync::DataSource
@@ -452,6 +500,11 @@ Resources:
                   - 'dynamodb:Scan'
                 Resource:
                   - !GetAtt PlayersTable.Arn
+              - Effect: 'Allow'
+                Action:
+                  - 'lambda:InvokeFunction'
+                Resource:
+                  - !GetAtt CreateTeamLambda.Arn
 
   ##########################
   #    Template Outputs    #

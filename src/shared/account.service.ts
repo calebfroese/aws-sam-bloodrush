@@ -41,9 +41,12 @@ export class AccountService {
           Key: {
             username,
           },
-          UpdateExpression: 'SET teams = list_append(teams, :teamId)',
+          UpdateExpression: 'SET #teamAttr = list_append(#teamAttr, :teamId)',
+          ExpressionAttributeNames: {
+            '#teamAttr': 'team',
+          },
           ExpressionAttributeValues: {
-            teamId: teamId,
+            ':teamId': [teamId],
           },
         })
         .promise()
