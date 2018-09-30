@@ -57,7 +57,7 @@ describe(AccountService.name, () => {
           },
           UpdateExpression: 'SET #teamAttr = list_append(#teamAttr, :teamId)',
           ExpressionAttributeNames: {
-            '#teamAttr': 'team',
+            '#teamAttr': 'teams',
           },
           ExpressionAttributeValues: {
             ':teamId': ['panthers'],

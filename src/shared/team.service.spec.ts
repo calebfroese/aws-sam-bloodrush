@@ -37,6 +37,7 @@ describe(TeamService.name, () => {
             name: 'Panthers',
             abbreviation: 'PTH',
             owner: 'user-cognito-123',
+            players: [],
           },
         },
       ]);

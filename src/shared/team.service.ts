@@ -24,6 +24,7 @@ export class TeamService {
             name: payload.name,
             abbreviation: payload.abbreviation,
             owner: username,
+            players: [],
           },
         })
         .promise()
