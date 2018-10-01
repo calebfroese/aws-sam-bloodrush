@@ -1,5 +1,6 @@
 import * as AWS from 'aws-sdk';
 import { from } from 'rxjs';
+import { mapTo } from 'rxjs/operators';
 
 export class TeamService {
   doc: AWS.DynamoDB.DocumentClient;
@@ -56,6 +57,8 @@ export class TeamService {
    * @param payload Player to be created on the team
    */
   addPlayerToTeam(username: string, teamId: string, payload: Player) {
+    // strip out the expireAt
+    const { expireAt, ...player } = payload;
     return from(
       this.doc
         .update({
@@ -71,11 +74,11 @@ export class TeamService {
           // Can only add a player on a team the user owns
           ConditionExpression: 'ownerUsername = :username',
           ExpressionAttributeValues: {
-            ':player': [payload],
+            ':player': [player],
             ':username': username,
           },
         })
         .promise()
-    );
+    ).pipe(mapTo(player));
   }
 }

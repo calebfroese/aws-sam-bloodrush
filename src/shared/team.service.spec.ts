@@ -64,6 +64,7 @@ describe(TeamService.name, () => {
       firstName: 'Bob',
       lastName: 'Smith',
       countryOfOrigin: 'Armenia',
+      expireAt: new Date(500).toISOString(),
     };
     service
       .addPlayerToTeam('user-cognito-123', 'team-panthers', player)
@@ -81,15 +82,27 @@ describe(TeamService.name, () => {
               '#playerAttr': 'players',
             },
             // Can only add a player on a team the user owns
-            ConditionExpression: 'username = :username',
+            ConditionExpression: 'ownerUsername = :username',
             ExpressionAttributeValues: {
-              ':player': [player],
+              ':player': [
+                {
+                  id: 'player-id-0',
+                  name: 'Bob Smith',
+                  firstName: 'Bob',
+                  lastName: 'Smith',
+                  countryOfOrigin: 'Armenia',
+                },
+              ],
               ':username': 'user-cognito-123',
             },
           },
         ]);
         expect(data).to.deep.equal({
-          mockDynamoResponse: true,
+          id: 'player-id-0',
+          name: 'Bob Smith',
+          firstName: 'Bob',
+          lastName: 'Smith',
+          countryOfOrigin: 'Armenia',
         });
         done();
       }, done);

@@ -1,6 +1,6 @@
 import { PlayerService } from './shared/player.service';
 import { TeamService } from './shared/team.service';
-import { switchMap, map } from 'rxjs/operators';
+import { switchMap, map, mapTo } from 'rxjs/operators';
 
 interface EventInput {
   username: string;
@@ -22,9 +22,9 @@ export function purchasePlayer(event: EventInput, ctx: any, callback: any) {
           result.Item as Player
         )
       ),
-      map(result => {
-        console.log(JSON.stringify(result.$response.data));
-      })
+      switchMap(player =>
+        playersService.deletePlayer(player.id).pipe(mapTo(player))
+      )
     )
-    .subscribe(() => callback(null, event), callback);
+    .subscribe(player => callback(null, player), callback);
 }
