@@ -149,6 +149,36 @@ Resources:
   #   DynamoDB   #
   ################
 
+  LeaguesTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
+  SeasonsTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      AttributeDefinitions:
+        - AttributeName: leagueId
+          AttributeType: S
+        - AttributeName: seasonNumber
+          AttributeType: N
+      KeySchema:
+        - AttributeName: leagueId
+          KeyType: HASH
+        - AttributeName: seasonNumber
+          KeyType: RANGE
+      ProvisionedThroughput:
+        ReadCapacityUnits: 1
+        WriteCapacityUnits: 1
+
   PlayersTable:
     Type: AWS::DynamoDB::Table
     Properties:
