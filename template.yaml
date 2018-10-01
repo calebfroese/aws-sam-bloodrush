@@ -253,6 +253,7 @@ Resources:
           id: ID!
           name: String!
           owned: Boolean!
+          players: [Player]!
         }
         type Game {
           round: Int!
